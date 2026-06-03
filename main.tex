@@ -19,8 +19,60 @@
 % other
 \usepackage{calc}
 \usepackage{hologo}
+\usepackage{amsmath} % for math, fractions and cases
+\usepackage{booktabs} % for clean tables: \toprule \midrule \bottomrule
+\usepackage{multirow} % for grouping rows that share a clap-count
+\usepackage{array} % for better column control
+\usepackage{adjustbox} % to shrink over-wide pattern tables to the page width
 \usepackage[hidelinks]{hyperref}
 %\usepackage{showframe}
+
+% THEME: outer-edge thumb tabs ------------------------------------------------
+\usepackage{xcolor}
+\usepackage{eso-pic} % to paint per-page background graphics
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+% accent palette (teal). swap to indigo by commenting/uncommenting below.
+\definecolor{accent}{HTML}{1F6F78}     % teal
+\definecolor{accentdark}{HTML}{15535A}
+%\definecolor{accent}{HTML}{2E3A87}    % indigo alternative
+%\definecolor{accentdark}{HTML}{222B66}
+
+% total number of tabbed chapters (controls vertical spread of the tabs)
+\newcommand{\TotalTabChapters}{6}
+\newlength{\tabwidth}\setlength{\tabwidth}{0.30in}
+\newlength{\tabheight}\setlength{\tabheight}{0.78in}
+\newlength{\tabtop}\setlength{\tabtop}{1.35in}   % top of the first tab, from page top
+\newlength{\tabstep}\setlength{\tabstep}{0.97in} % top-to-top spacing between tabs
+\newlength{\taboffset} % scratch: distance from page top to this tab's top edge
+
+% draw one thumb tab on the outer edge, vertically offset by chapter number.
+% right edge on odd (recto) pages, left edge on even (verso) pages.
+\newcommand{\drawthumbtab}{%
+  \ifnum\value{chapter}>0
+    \setlength{\taboffset}{\tabtop + \tabstep*(\value{chapter}-1)}%
+    \begin{tikzpicture}[remember picture, overlay]
+      \ifodd\value{page}% recto: outer edge is on the right
+        \fill[accent]
+          ([yshift=-\taboffset]current page.north east)
+          rectangle ++(-\tabwidth,-\tabheight);
+        \node[white, font=\sffamily\bfseries\large]
+          at ([xshift=-0.5\tabwidth, yshift=-\taboffset-0.5\tabheight]current page.north east)
+          {\thechapter};
+      \else% verso: outer edge is on the left
+        \fill[accent]
+          ([yshift=-\taboffset]current page.north west)
+          rectangle ++(\tabwidth,-\tabheight);
+        \node[white, font=\sffamily\bfseries\large]
+          at ([xshift=0.5\tabwidth, yshift=-\taboffset-0.5\tabheight]current page.north west)
+          {\thechapter};
+      \fi
+    \end{tikzpicture}%
+  \fi
+}
+\AddToShipoutPictureBG{\drawthumbtab}
+% END THEME -------------------------------------------------------------------
 
 % PHYSICAL DOCUMENT SETUP
 % media settings
@@ -33,7 +85,10 @@
 % defining the title and the author
 %\title{\LaTeX{} ePub Template}
 %\title{\textsc{How I Started to Love {\fontfamily{cmr}\selectfont\LaTeX{}}}}
-\title{Konnakkol and Khaos}
+% an immutable copy of the title for use in running headers
+% (\thetitle gets clobbered by sectioning marks later in the document)
+\newcommand{\booktitle}{Konnakkol and Khaos}
+\title{\booktitle}
 \author{Chittaranjan Swaminathan}
 \newcommand{\ISBN}{0-000-00000-2}
 \newcommand{\press}{}
@@ -93,13 +148,14 @@
   \makepagestyle{mystyle} 
   \setlength{\headwidth}{\dimexpr\textwidth+\marginparsep+\marginparwidth\relax}
   \makerunningwidth{mystyle}{\headwidth}
-  \makeevenhead{mystyle}{}{\textsf{\scriptsize\scshape\thetitle}}{}
+  \makeevenhead{mystyle}{}{\textsf{\scriptsize\scshape\booktitle}}{}
   \makeoddhead{mystyle}{}{\textsf{\scriptsize\scshape\leftmark}}{}
   \makeevenfoot{mystyle}{}{\textsf{\scriptsize\thepage}}{}
   \makeoddfoot{mystyle}{}{\textsf{\scriptsize\thepage}}{}
   \makeatletter
   \makepsmarks{mystyle}{%
-  \createmark{chapter}{left}{nonumber}{\@chapapp\ }{.\ }}
+  \createmark{chapter}{both}{nonumber}{}{}%
+  \createmark{section}{right}{nonumber}{}{}}
   \makeatother
   % for pages where chapters begin
   \makepagestyle{plain}
@@ -114,6 +170,8 @@
 \renewcommand\cftchapterfont{\normalfont}
 \renewcommand{\cftchapterpagefont}{\normalfont}
 \renewcommand{\printtoctitle}{\centering\Huge}
+% show chapters and sections in the contents (clean, uncluttered)
+\settocdepth{section}
 
 % layout check and fix
 \checkandfixthelayout
@@ -140,30 +198,18 @@
 % begin front matter
 \frontmatter
 \pagestyle{mystyle}
-% preface
-\chapter*{Preface}
-\lipsum[100-104]
-% acknowledgements
-\chapter*{Acknowledgements}
-\lipsum[1-9]
 % table of contents
 \clearpage
 \tableofcontents*
 
 % begin main matter
 \mainmatter
-\chapter{Introduction and Roadmap}
-\lipsum[1-20]
-\chapter{The Basics}
-\lipsum[21-40]
-\chapter{Sorkattu: A Bunch of Syllables}
-\lipsum[41-60]
-\chapter{Traditional Patterns}
-\lipsum[61-80]
-\chapter{Polyrhythms and Walks}
-\lipsum[81-100]
-\chapter{Exercises for Practice}
-\lipsum[101-120]
+\input{chapters/01-introduction.tex}
+\input{chapters/02-basic-definitions.tex}
+\input{chapters/03-syllables.tex}
+\input{chapters/04-patterns.tex}
+\input{chapters/05-more-examples.tex}
+\input{chapters/06-exercises.tex}
 
 % begin back matter
 
